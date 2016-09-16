@@ -10,11 +10,17 @@ public class YoutubeVideo {
     private String mVideoId;
     private String mTitle;
     private String mDate;
+    private String mImageUrl;
 
-    public YoutubeVideo(String videoId, String title, String date) {
+    public YoutubeVideo(String videoId, String title, String date, String imageUrl) {
         mVideoId = videoId;
         mTitle = title;
         mDate = date;
+        mImageUrl = imageUrl;
+    }
+
+    public String getmImageUrl() {
+        return mImageUrl;
     }
 
     public String getmVideoId() {

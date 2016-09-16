@@ -1,8 +1,11 @@
 package js.collectionofoverwatch;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,6 +19,8 @@ import android.widget.TextView;
 
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -100,7 +105,7 @@ public class CollectionOverwatchFragment extends Fragment {
 
         public YoutubeDataHolder(View itemView) {
             super(itemView);
-            //mVideo = (ImageView) itemView.findViewById(R.id.imageView);
+            mVideo = (ImageView) itemView.findViewById(R.id.imageView);
             mTitle = (TextView) itemView.findViewById(R.id.title);
             mDate = (TextView) itemView.findViewById(R.id.description);
 
@@ -109,6 +114,30 @@ public class CollectionOverwatchFragment extends Fragment {
         public void bindItem(YoutubeVideo item) {
             //mVideo.setImageDrawable
             // ;
+            final Handler handler = new Handler();
+            final String imageUrl = item.getmImageUrl();
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        URL url = new URL(imageUrl);
+                        InputStream is = url.openStream();
+                        final Bitmap bitmap = BitmapFactory.decodeStream(is);
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mVideo.setImageBitmap(bitmap);
+                            }
+                        });
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            t.start();
             mTitle.setText(item.getmTitle());
             mDate.setText(item.getmDate());
 

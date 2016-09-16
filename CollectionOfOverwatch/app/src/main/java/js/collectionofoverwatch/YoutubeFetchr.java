@@ -72,6 +72,8 @@ public class YoutubeFetchr {
         String mVideoId;
         String mTitle;
         String mDate;
+        String mImageUrl;
+
         ArrayList<YoutubeVideo> videoList = new ArrayList<>();
         try {
             JSONObject jsonObj = new JSONObject(result);
@@ -81,10 +83,12 @@ public class YoutubeFetchr {
                 String kind = obj.getJSONObject("id").getString("kind");
                 if (kind.equals("youtube#video")) { //video 에 대해서만 취급
                     //동영상 재생시 반드시 필요한 videoId
+
                     mVideoId=obj.getJSONObject("id").getString("videoId");
                     mTitle = obj.getJSONObject("snippet").getString("title");
                     mDate = obj.getJSONObject("snippet").getString("publishedAt").substring(0,10);
-                    videoList.add(new YoutubeVideo(mVideoId,mTitle,mDate));
+                    mImageUrl = obj.getJSONObject("snippet").getJSONObject("thumbnails").getJSONObject("medium").getString("url");
+                    videoList.add(new YoutubeVideo(mVideoId,mTitle,mDate, mImageUrl));
                 }
                 else continue;
             }
