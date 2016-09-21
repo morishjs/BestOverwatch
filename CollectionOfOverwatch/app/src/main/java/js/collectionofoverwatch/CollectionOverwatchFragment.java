@@ -1,11 +1,13 @@
 package js.collectionofoverwatch;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -30,11 +32,14 @@ import java.util.ArrayList;
 public class CollectionOverwatchFragment extends Fragment {
 
     private static final String TAG = "CollectionOverwatch";
-    private static final String APPID = "AIzaSyBYp1u6jOKf-Q_6NuZzG9uJEOWA5i_E4UQ";
+    private String APPID;
 
     private RecyclerView mRecyclerView;
+
     //Video model
     private ArrayList<YoutubeVideo> mVideos = new ArrayList<>();
+    private MainActivity mActivity;
+
 
     public static Fragment newInstance() {
         return new CollectionOverwatchFragment();
@@ -45,7 +50,16 @@ public class CollectionOverwatchFragment extends Fragment {
         super.onCreate(savedInstanceState);
         FetchItemsAsync f = new FetchItemsAsync();
         f.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        APPID = getString(R.string.app_key);
+        setRetainInstance(true);
 
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        mActivity = (MainActivity) getActivity();
     }
 
     @Nullable
@@ -76,7 +90,7 @@ public class CollectionOverwatchFragment extends Fragment {
                         .appendQueryParameter("part", "snippet")
                         .appendQueryParameter("q", "Overwatch")
                         .appendQueryParameter("key", APPID)
-                        .appendQueryParameter("maxResults", "3")
+                        .appendQueryParameter("maxResults", "11")
                         .build().toString();
 
                 result = YoutubeFetchr.getUrlString(url);
@@ -102,6 +116,11 @@ public class CollectionOverwatchFragment extends Fragment {
         private ImageView mVideo;
         private TextView mTitle;
         private TextView mDate;
+        private String mVideoID;
+
+        public String getVideoID() {
+            return mVideoID;
+        }
 
         public YoutubeDataHolder(View itemView) {
             super(itemView);
@@ -116,6 +135,8 @@ public class CollectionOverwatchFragment extends Fragment {
             // ;
             final Handler handler = new Handler();
             final String imageUrl = item.getmImageUrl();
+            mVideoID = item.getmVideoId();
+
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -147,15 +168,19 @@ public class CollectionOverwatchFragment extends Fragment {
     private class YoutubeAdapter extends RecyclerView.Adapter<YoutubeDataHolder> {
 
         ArrayList<YoutubeVideo> videos;
+        private View.OnClickListener mOnItemClickListener;
 
         public YoutubeAdapter(ArrayList<YoutubeVideo> videos) {
             this.videos = videos;
+            mOnItemClickListener = new MyOnClickListener();
         }
 
         @Override
         public YoutubeDataHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(getActivity());
             View v = inflater.inflate(R.layout.video_item, parent, false);
+
+            v.setOnClickListener(mOnItemClickListener);
             return new YoutubeDataHolder(v);
         }
 
@@ -168,6 +193,15 @@ public class CollectionOverwatchFragment extends Fragment {
         @Override
         public int getItemCount() {
             return videos.size();
+        }
+
+        private class MyOnClickListener implements View.OnClickListener {
+            @Override
+            public void onClick(View view) {
+                int position = mRecyclerView.getChildLayoutPosition(view);
+                YoutubeDataHolder item = (YoutubeDataHolder) mRecyclerView.getChildViewHolder(view);
+                mActivity.playVideo(position,item.getVideoID());
+            }
         }
     }
 
